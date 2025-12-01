@@ -1,5 +1,7 @@
 package capstone.notificationservice.config;
 
+import capstone.notificationservice.exception.AppException;
+import capstone.notificationservice.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,63 +25,60 @@ public class RedisStreamConfig {
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        String host = "localhost";
-        int port = 6379;
-        String username = null;
-        String password = null;
-        boolean useSsl = false;
+        RedisConfigData data = parseRedisUrl(redisUrl);
 
-        if (redisUrl != null) {
-            try {
-                if (redisUrl.startsWith("rediss://")) {
-                    useSsl = true;
-                    redisUrl = redisUrl.substring(9);
-                } else if (redisUrl.startsWith("redis://")) {
-                    redisUrl = redisUrl.substring(8);
-                }
+        RedisStandaloneConfiguration config =
+                new RedisStandaloneConfiguration(data.host(), data.port());
 
-                String[] authAndHost = redisUrl.split("@");
-
-                if (authAndHost.length == 2) {
-                    String[] credentials = authAndHost[0].split(":");
-                    username = credentials[0];
-                    password = credentials.length > 1 ? credentials[1] : null;
-
-                    String[] hostPort = authAndHost[1].split(":");
-                    host = hostPort[0];
-                    if (hostPort.length > 1) {
-                        port = Integer.parseInt(hostPort[1]);
-                    }
-                } else {
-                    String[] hostPort = authAndHost[0].split(":");
-                    host = hostPort[0];
-                    if (hostPort.length > 1) {
-                        port = Integer.parseInt(hostPort[1]);
-                    }
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Invalid Redis URL format: " + redisUrl, e);
-            }
-        }
-
-        RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
-
-        if (username != null) {
-            config.setUsername(username);
-        }
-        if (password != null) {
-            config.setPassword(password);
-        }
+        if (data.username() != null) config.setUsername(data.username());
+        if (data.password() != null) config.setPassword(data.password());
 
         LettuceClientConfiguration.LettuceClientConfigurationBuilder builder =
                 LettuceClientConfiguration.builder();
 
-        if (useSsl) {
-            builder.useSsl();
-        }
+        if (data.useSsl()) builder.useSsl();
 
         return new LettuceConnectionFactory(config, builder.build());
     }
+
+    private RedisConfigData parseRedisUrl(String redisUrl) {
+        if (redisUrl == null || redisUrl.isEmpty()) {
+            return new RedisConfigData("localhost", 6379, null, null, false);
+        }
+
+        try {
+            boolean useSsl = redisUrl.startsWith("rediss://");
+            redisUrl = redisUrl.replaceFirst("rediss?://", "");
+
+            String username = null;
+            String password = null;
+            String host;
+            int port;
+
+            String[] authAndHost = redisUrl.split("@");
+
+            if (authAndHost.length == 2) {
+                String[] credentials = authAndHost[0].split(":");
+                username = credentials[0];
+                password = credentials.length > 1 ? credentials[1] : null;
+
+                String[] hostPort = authAndHost[1].split(":");
+                host = hostPort[0];
+                port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : 6379;
+            }
+
+            else {
+                String[] hostPort = authAndHost[0].split(":");
+                host = hostPort[0];
+                port = hostPort.length > 1 ? Integer.parseInt(hostPort[1]) : 6379;
+            }
+
+            return new RedisConfigData(host, port, username, password, useSsl);
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Invalid Redis URL format: " + redisUrl, e);
+        }
+    }
+
 
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {

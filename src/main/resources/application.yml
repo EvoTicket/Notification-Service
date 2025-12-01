@@ -60,10 +60,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-notification:
-  kafka:
-    topic:
-      email: email-notifications
-      sms: sms-notifications
-      push: push-notifications

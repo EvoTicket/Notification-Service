@@ -1,4 +1,4 @@
-package capstone.notificationservice.config;
+package capstone.notificationservice.consumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
@@ -34,7 +34,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 
     @PostConstruct
     public void init() {
-        // Tạo consumer group nếu chưa tồn tại
         try {
             redisTemplate.opsForStream()
                     .createGroup(STREAM_KEY, CONSUMER_GROUP);
@@ -43,7 +42,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             log.info("Consumer group '{}' already exists", CONSUMER_GROUP);
         }
 
-        // Đăng ký listener
         subscription = listenerContainer.receive(
                 Consumer.from(CONSUMER_GROUP, CONSUMER_NAME),
                 StreamOffset.create(STREAM_KEY, ReadOffset.lastConsumed()),
@@ -61,14 +59,11 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             Map<String, String> body = message.getValue();
 
             String payload = body.get("payload");
-            String timestamp = body.get("timestamp");
 
             log.info("Received message [ID: {}]: {}", messageId, payload);
 
-            // Xử lý message ở đây
             processMessage(payload);
 
-            // Acknowledge message (xác nhận đã xử lý thành công)
             redisTemplate.opsForStream()
                     .acknowledge(STREAM_KEY, CONSUMER_GROUP, messageId);
 
@@ -76,12 +71,10 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 
         } catch (Exception e) {
             log.error("Error processing message", e);
-            // Có thể implement retry logic hoặc dead letter queue ở đây
         }
     }
 
     private void processMessage(String payload) {
-        // Business logic xử lý message
         log.info("Processing: {}", payload);
 
         // Ví dụ: parse JSON và xử lý
