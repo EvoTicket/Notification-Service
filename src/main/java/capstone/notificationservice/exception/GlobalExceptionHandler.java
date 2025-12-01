@@ -1,5 +1,6 @@
 package capstone.notificationservice.exception;
 
+import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
@@ -187,6 +188,22 @@ public class GlobalExceptionHandler {
                 .error(errorCode.getStatus().getReasonPhrase())
                 .code(errorCode.getCode())
                 .message("Lỗi khi upload file. Vui lòng kiểm tra định dạng hoặc dung lượng." + " " + ex.getMessage())
+                .path(request.getRequestURI())
+                .build();
+
+        return new ResponseEntity<>(error, errorCode.getStatus());
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ErrorResponse> handleMessageException(MessagingException ex, HttpServletRequest request) {
+        ErrorCode errorCode = ErrorCode.MESSAGE_ERROR;
+
+        ErrorResponse error = ErrorResponse.builder()
+                .timestamp(OffsetDateTime.now(ZoneOffset.ofHours(7)))
+                .status(errorCode.getStatus().value())
+                .error(errorCode.getStatus().getReasonPhrase())
+                .code(errorCode.getCode())
+                .message("Failed to send email" + " " + ex.getMessage())
                 .path(request.getRequestURI())
                 .build();
 

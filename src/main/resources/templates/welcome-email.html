@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chào Mừng Đến Với EvoTicket</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 18px;
+            position: relative;
+            z-index: 1;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 50px 40px;
+            background: #ffffff;
+        }
+
+        .greeting {
+            font-size: 28px;
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        .username {
+            color: #667eea;
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .message {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px 0;
+            border-left: 5px solid #667eea;
+        }
+
+        .highlight-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+        }
+
+        .features-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .features-list li {
+            padding: 12px 0;
+            color: #4a5568;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .features-list li::before {
+            content: '✓';
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 25px 0;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .tips-section {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .tips-title {
+            font-weight: 600;
+            color: #744210;
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .tips-content {
+            color: #744210;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: #f7fafc;
+            padding: 35px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer-text {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .social-links {
+            margin-top: 20px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+            font-weight: 500;
+        }
+
+        .social-links a:hover {
+            color: #764ba2;
+        }
+
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
+            margin: 30px 0;
+        }
+
+        .stats-container {
+            display: flex;
+            justify-content: space-around;
+            margin: 30px 0;
+            padding: 25px;
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 25px;
+            }
+
+            .greeting {
+                font-size: 24px;
+            }
+
+            .username {
+                font-size: 20px;
+            }
+
+            .stats-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="welcome-icon">🎉</div>
+            <div class="logo">🎫 EvoTicket</div>
+            <div class="header-subtitle">Chào mừng bạn đến với gia đình chúng tôi!</div>
+        </div>
+
+        <div class="content">
+            <div class="greeting">Xin chào,</div>
+            <div class="username" th:text="${fullName}">Nguyễn Văn A</div>
+
+            <p class="message">
+                Chúng tôi rất vui mừng chào đón bạn đến với <strong>EvoTicket</strong> - nền tảng quản lý sự kiện
+                hàng đầu! Tài khoản của bạn đã được tạo thành công với username:
+                <strong th:text="${username}">username</strong>
+            </p>
+
+            <div class="stats-container">
+                <div class="stat-item">
+                    <span class="stat-number">10K+</span>
+                    <span class="stat-label">Sự kiện</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">50K+</span>
+                    <span class="stat-label">Người dùng</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-number">99%</span>
+                    <span class="stat-label">Hài lòng</span>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <div class="highlight-title">🚀 Bạn có thể làm gì với EvoTicket?</div>
+                <ul class="features-list">
+                    <li>Tạo và quản lý sự kiện dễ dàng</li>
+                    <li>Bán vé trực tuyến an toàn và nhanh chóng</li>
+                    <li>Theo dõi doanh thu và thống kê chi tiết</li>
+                    <li>Quản lý khách hàng và check-in thông minh</li>
+                    <li>Tích hợp thanh toán đa dạng</li>
+                    <li>Hỗ trợ 24/7 từ đội ngũ chuyên nghiệp</li>
+                </ul>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="#" class="cta-button">🎯 Bắt Đầu Ngay</a>
+            </div>
+
+            <div class="tips-section">
+                <div class="tips-title">
+                    💡 Mẹo cho người mới
+                </div>
+                <div class="tips-content">
+                    • Hoàn thiện hồ sơ của bạn để tăng độ tin cậy<br>
+                    • Khám phá các sự kiện đang diễn ra<br>
+                    • Tham gia cộng đồng để kết nối với những người tổ chức khác<br>
+                    • Đọc hướng dẫn để tận dụng tối đa các tính năng
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <p class="message">
+                Nếu bạn có bất kỳ câu hỏi nào, đừng ngần ngại liên hệ với đội ngũ hỗ trợ của chúng tôi.
+                Chúng tôi luôn sẵn sàng giúp đỡ bạn!
+            </p>
+
+            <p class="message" style="margin-top: 25px;">
+                <strong>Chúc bạn có những trải nghiệm tuyệt vời!</strong><br>
+                Đội ngũ EvoTicket
+            </p>
+        </div>
+
+        <div class="footer">
+            <p class="footer-text">
+                <strong>EvoTicket</strong> - Nền tảng quản lý sự kiện hàng đầu<br>
+                © 2024 EvoTicket. All rights reserved.
+            </p>
+
+            <div class="social-links">
+                <a href="#">📧 Liên hệ</a> •
+                <a href="#">📚 Hướng dẫn</a> •
+                <a href="#">❓ FAQ</a> •
+                <a href="#">📱 Cộng đồng</a>
+            </div>
+
+            <p class="footer-text" style="margin-top: 20px; font-size: 12px; color: #a0aec0;">
+                Bạn nhận được email này vì đã đăng ký tài khoản EvoTicket với địa chỉ
+                <span th:text="${email}">email@example.com</span>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

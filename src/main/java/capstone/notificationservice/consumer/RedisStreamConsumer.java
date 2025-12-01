@@ -1,5 +1,10 @@
 package capstone.notificationservice.consumer;
 
+import capstone.notificationservice.event.OtpEvent;
+import capstone.notificationservice.event.WelcomeEvent;
+import capstone.notificationservice.exception.AppException;
+import capstone.notificationservice.exception.ErrorCode;
+import capstone.notificationservice.service.EmailService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -15,6 +20,8 @@ import org.springframework.data.redis.stream.StreamMessageListenerContainer;
 import org.springframework.data.redis.stream.Subscription;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -24,32 +31,46 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 
     private final StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final EmailService emailService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    private static final String STREAM_KEY = "order-events";
-    private static final String CONSUMER_GROUP = "order-service-group";
-    private static final String CONSUMER_NAME = "consumer-1";
+    private static final List<String> LIST_STREAM_KEY = List.of(
+            "forgot-password-otp",
+            "welcome-signup"
+    );
+    private static final String CONSUMER_GROUP = "notification-service-group";
+    private static final String CONSUMER_NAME = "notification-1";
 
-    private Subscription subscription;
+    private final List<Subscription> subscriptions = new ArrayList<>();
 
     @PostConstruct
     public void init() {
-        try {
-            redisTemplate.opsForStream()
-                    .createGroup(STREAM_KEY, CONSUMER_GROUP);
-            log.info("Created consumer group '{}' for stream '{}'", CONSUMER_GROUP, STREAM_KEY);
-        } catch (Exception e) {
-            log.info("Consumer group '{}' already exists", CONSUMER_GROUP);
-        }
+        // 1) Tạo consumer group cho tất cả stream
+        LIST_STREAM_KEY.forEach(streamKey -> {
+            try {
+                redisTemplate.opsForStream().createGroup(streamKey, CONSUMER_GROUP);
+                log.info("Created consumer group '{}' for stream '{}'", CONSUMER_GROUP, streamKey);
+            } catch (Exception e) {
+                log.info("Consumer group '{}' already exists for stream '{}'", CONSUMER_GROUP, streamKey);
+            }
+        });
 
-        subscription = listenerContainer.receive(
-                Consumer.from(CONSUMER_GROUP, CONSUMER_NAME),
-                StreamOffset.create(STREAM_KEY, ReadOffset.lastConsumed()),
-                this
-        );
+        // 2) Tạo subscription cho từng stream
+        LIST_STREAM_KEY.forEach(streamKey -> {
 
+            Subscription sub = listenerContainer.receive(
+                    Consumer.from(CONSUMER_GROUP, CONSUMER_NAME),
+                    StreamOffset.create(streamKey, ReadOffset.lastConsumed()),
+                    this);
+
+            subscriptions.add(sub);
+
+            log.info("Subscribed consumer '{}' to stream '{}'", CONSUMER_NAME, streamKey);
+        });
+
+        // 3) Start listener container
         listenerContainer.start();
-        log.info("Redis Stream consumer started for stream '{}'", STREAM_KEY);
+        log.info("Redis Stream consumer started for all streams: {}", LIST_STREAM_KEY);
     }
 
     @Override
@@ -62,10 +83,10 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 
             log.info("Received message [ID: {}]: {}", messageId, payload);
 
-            processMessage(payload);
+            filterMessage(payload, message.getRequiredStream());
 
             redisTemplate.opsForStream()
-                    .acknowledge(STREAM_KEY, CONSUMER_GROUP, messageId);
+                    .acknowledge(message.getRequiredStream(), CONSUMER_GROUP, messageId);
 
             log.info("Message acknowledged: {}", messageId);
 
@@ -74,26 +95,51 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
         }
     }
 
-    private void processMessage(String payload) {
+    private void filterMessage(String payload, String stream) {
         log.info("Processing: {}", payload);
 
-        // Ví dụ: parse JSON và xử lý
+        switch (stream) {
+            case "forgot-password-otp" -> handleForgotPasswordOtp(payload);
+            case "welcome-signup" -> handleWelcomeSignup(payload);
+            default -> throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unknown stream: " + stream);
+        }
+    }
+
+    private void handleForgotPasswordOtp(String payload) {
         try {
-            // OrderEvent order = objectMapper.readValue(payload, OrderEvent.class);
-            // ... xử lý order
+            OtpEvent otpEvent = objectMapper.readValue(payload, OtpEvent.class);
+            log.info("Processing OTP event for email: {}", otpEvent.getEmail());
+
+            // Send OTP email
+            emailService.sendOtpEmail(otpEvent.getEmail(), otpEvent.getOtpCode());
+            log.info("OTP email sent successfully for: {}", otpEvent.getEmail());
+
         } catch (Exception e) {
-            log.error("Error parsing message payload", e);
+            log.error("Error processing OTP event", e);
+        }
+    }
+
+    private void handleWelcomeSignup(String payload) {
+        try {
+            WelcomeEvent welcomeEvent = objectMapper.readValue(payload, WelcomeEvent.class);
+            log.info("Processing Welcome event for email: {}", welcomeEvent.getEmail());
+
+            // Send welcome email
+            emailService.sendWelcomeEmail(
+                    welcomeEvent.getEmail(),
+                    welcomeEvent.getFullName(),
+                    welcomeEvent.getUsername());
+            log.info("Welcome email sent successfully for: {}", welcomeEvent.getEmail());
+
+        } catch (Exception e) {
+            log.error("Error processing Welcome event", e);
         }
     }
 
     @PreDestroy
     public void destroy() {
-        if (subscription != null) {
-            subscription.cancel();
-        }
-        if (listenerContainer != null) {
-            listenerContainer.stop();
-        }
+        subscriptions.forEach(Subscription::cancel);
+        listenerContainer.stop();
         log.info("Redis Stream consumer stopped");
     }
 }

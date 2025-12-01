@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mã OTP Xác Thực</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-subtitle {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 50px 40px;
+            background: #ffffff;
+        }
+        
+        .greeting {
+            font-size: 24px;
+            color: #2d3748;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .message {
+            color: #4a5568;
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 30px;
+        }
+        
+        .otp-container {
+            background: linear-gradient(135deg, #f6f8fb 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 35px;
+            text-align: center;
+            margin: 30px 0;
+            border: 2px solid #e2e8f0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .otp-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .otp-label {
+            font-size: 14px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .otp-code {
+            font-size: 48px;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 2px 2px 4px rgba(102, 126, 234, 0.2);
+            padding: 10px;
+            display: inline-block;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+        }
+        
+        .expiry-notice {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff5f5;
+            border-left: 4px solid #fc8181;
+            border-radius: 5px;
+            color: #c53030;
+            font-size: 14px;
+            text-align: left;
+        }
+        
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+            color: #744210;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .warning-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .footer {
+            background: #f7fafc;
+            padding: 30px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .footer-text {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .social-links {
+            margin-top: 20px;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            color: #764ba2;
+        }
+        
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
+            margin: 25px 0;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .content {
+                padding: 30px 25px;
+            }
+            
+            .otp-code {
+                font-size: 36px;
+                letter-spacing: 5px;
+            }
+            
+            .greeting {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <div class="logo">🎫 EvoTicket</div>
+            <div class="header-subtitle">Hệ thống quản lý sự kiện</div>
+        </div>
+        
+        <div class="content">
+            <div class="greeting">Xin chào!</div>
+            
+            <p class="message">
+                Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản <strong th:text="${email}">email@example.com</strong>. 
+                Vui lòng sử dụng mã OTP bên dưới để xác thực yêu cầu của bạn.
+            </p>
+            
+            <div class="otp-container">
+                <div class="otp-label">Mã xác thực OTP</div>
+                <div class="otp-code" th:text="${otpCode}">123456</div>
+                <div class="expiry-notice">
+                    ⏰ Mã này sẽ hết hạn sau <strong>5 phút</strong>
+                </div>
+            </div>
+            
+            <div class="warning">
+                <div class="warning-title">
+                    🔒 Lưu ý bảo mật
+                </div>
+                <div>
+                    • Không chia sẻ mã OTP này với bất kỳ ai<br>
+                    • Nhân viên EvoTicket sẽ không bao giờ yêu cầu mã OTP của bạn<br>
+                    • Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email
+                </div>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p class="message">
+                Nếu bạn gặp bất kỳ vấn đề nào, vui lòng liên hệ với đội ngũ hỗ trợ của chúng tôi.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p class="footer-text">
+                <strong>EvoTicket</strong> - Nền tảng quản lý sự kiện hàng đầu<br>
+                © 2024 EvoTicket. All rights reserved.
+            </p>
+            
+            <div class="social-links">
+                <a href="#">Trợ giúp</a> •
+                <a href="#">Điều khoản</a> •
+                <a href="#">Chính sách</a>
+            </div>
+            
+            <p class="footer-text" style="margin-top: 20px; font-size: 12px; color: #a0aec0;">
+                Email này được gửi tự động, vui lòng không trả lời.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
