@@ -25,6 +25,8 @@ spring:
           max-idle: 8
           min-idle: 0
           max-wait: -1ms
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/notification_db}
   servlet:
     multipart:
       max-file-size: 20MB

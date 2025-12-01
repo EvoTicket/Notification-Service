@@ -1,10 +1,12 @@
 package capstone.notificationservice.consumer;
 
+import capstone.notificationservice.enums.NotificationType;
 import capstone.notificationservice.event.OtpEvent;
 import capstone.notificationservice.event.WelcomeEvent;
 import capstone.notificationservice.exception.AppException;
 import capstone.notificationservice.exception.ErrorCode;
 import capstone.notificationservice.service.EmailService;
+import capstone.notificationservice.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
@@ -32,12 +34,12 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private final StreamMessageListenerContainer<String, MapRecord<String, String, String>> listenerContainer;
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmailService emailService;
+    private final NotificationService notificationService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     private static final List<String> LIST_STREAM_KEY = List.of(
             "forgot-password-otp",
-            "welcome-signup"
-    );
+            "welcome-signup");
     private static final String CONSUMER_GROUP = "notification-service-group";
     private static final String CONSUMER_NAME = "notification-1";
 
@@ -45,7 +47,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
 
     @PostConstruct
     public void init() {
-        // 1) Tạo consumer group cho tất cả stream
         LIST_STREAM_KEY.forEach(streamKey -> {
             try {
                 redisTemplate.opsForStream().createGroup(streamKey, CONSUMER_GROUP);
@@ -55,7 +56,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             }
         });
 
-        // 2) Tạo subscription cho từng stream
         LIST_STREAM_KEY.forEach(streamKey -> {
 
             Subscription sub = listenerContainer.receive(
@@ -68,7 +68,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             log.info("Subscribed consumer '{}' to stream '{}'", CONSUMER_NAME, streamKey);
         });
 
-        // 3) Start listener container
         listenerContainer.start();
         log.info("Redis Stream consumer started for all streams: {}", LIST_STREAM_KEY);
     }
@@ -124,12 +123,18 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             WelcomeEvent welcomeEvent = objectMapper.readValue(payload, WelcomeEvent.class);
             log.info("Processing Welcome event for email: {}", welcomeEvent.getEmail());
 
-            // Send welcome email
             emailService.sendWelcomeEmail(
                     welcomeEvent.getEmail(),
                     welcomeEvent.getFullName(),
                     welcomeEvent.getUsername());
             log.info("Welcome email sent successfully for: {}", welcomeEvent.getEmail());
+
+            notificationService.createAndSendNotification(
+                    welcomeEvent.getEmail(),
+                    "Chào mừng đến với EvoTicket!",
+                    "Xin chào " + welcomeEvent.getFullName()
+                            + "! Tài khoản của bạn đã được tạo thành công. Chúc bạn có trải nghiệm tuyệt vời!",
+                    NotificationType.WELCOME);
 
         } catch (Exception e) {
             log.error("Error processing Welcome event", e);
