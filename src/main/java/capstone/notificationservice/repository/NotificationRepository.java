@@ -11,11 +11,11 @@ import java.util.List;
 @Repository
 public interface NotificationRepository extends MongoRepository<Notification, String> {
 
-    Page<Notification> findByUserIdOrderByCreatedAtDesc(String userId, Pageable pageable);
+    Page<Notification> findByUserIdOrderByCreatedAtDesc(Long userId, Pageable pageable);
 
-    long countByUserIdAndIsReadFalse(String userId);
+    long countByUserIdAndIsReadFalse(Long userId);
 
-    List<Notification> findByUserIdAndIsReadFalse(String userId);
+    List<Notification> findByUserIdAndIsReadFalse(Long userId);
 
-    List<Notification> findByUserId(String userId);
+    List<Notification> findByUserId(Long userId);
 }

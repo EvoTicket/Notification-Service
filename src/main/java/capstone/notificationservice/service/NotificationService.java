@@ -4,7 +4,10 @@ import capstone.notificationservice.dto.NotificationDTO;
 import capstone.notificationservice.dto.NotificationPageResponse;
 import capstone.notificationservice.entity.Notification;
 import capstone.notificationservice.enums.NotificationType;
+import capstone.notificationservice.exception.AppException;
+import capstone.notificationservice.exception.ErrorCode;
 import capstone.notificationservice.repository.NotificationRepository;
+import capstone.notificationservice.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,24 +25,11 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
-    public Notification createNotification(String userId, String title, String message, NotificationType type) {
-        Notification notification = Notification.builder()
-                .userId(userId)
-                .title(title)
-                .message(message)
-                .type(type)
-                .isRead(false)
-                .createdAt(LocalDateTime.now())
-                .build();
-
-        return notificationRepository.save(notification);
-    }
-
-    public void sendRealtimeNotification(String userId, NotificationDTO notification) {
+    private final JwtUtil jwtUtil;
+    public void sendRealtimeNotification(Long userId, NotificationDTO notification) {
         try {
             messagingTemplate.convertAndSendToUser(
-                    userId,
+                    userId.toString(),
                     "/queue/notifications",
                     notification);
             log.info("Realtime notification sent to user: {}", userId);
@@ -49,22 +38,32 @@ public class NotificationService {
         }
     }
 
-    public void createAndSendNotification(String userId, String title, String message,
-                                          NotificationType type) {
+    public void createAndSendNotification(Long userId, String title, String message,
+                                          NotificationType type, String imageUrl) {
 
-        Notification notification = createNotification(userId, title, message, type);
+        Notification notification = Notification.builder()
+                .userId(userId)
+                .title(title)
+                .message(message)
+                .type(type)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
+                .imageUrl(imageUrl)
+                .build();
+
+        notificationRepository.save(notification);
 
         NotificationDTO dto = NotificationDTO.fromEntity(notification);
 
         sendRealtimeNotification(userId, dto);
     }
 
-    public NotificationPageResponse getNotifications(String userId, Pageable pageable) {
-        Page<Notification> page = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable);
+    public NotificationPageResponse getNotifications(Pageable pageable) {
+        Page<Notification> page = notificationRepository.findByUserIdOrderByCreatedAtDesc(jwtUtil.getDataFromAuth().userId(), pageable);
 
         List<NotificationDTO> content = page.getContent().stream()
                 .map(NotificationDTO::fromEntity)
-                .collect(Collectors.toList());
+                .toList();
 
         return NotificationPageResponse.builder()
                 .content(content)
@@ -77,16 +76,16 @@ public class NotificationService {
                 .build();
     }
 
-    public NotificationDTO markAsRead(String notificationId, String userId) {
+    public NotificationDTO markAsRead(String notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.RESOURCE_NOT_FOUND, "Notification not found"));
 
-        if (!notification.getUserId().equals(userId)) {
-            throw new RuntimeException("Unauthorized access to notification");
+        if (!notification.getUserId().equals(jwtUtil.getDataFromAuth().userId())) {
+            throw new AppException(ErrorCode.FORBIDDEN);
         }
 
-        if (!notification.getIsRead()) {
-            notification.setIsRead(true);
+        if (!notification.isRead()) {
+            notification.setRead(true);
             notification.setReadAt(LocalDateTime.now());
             notification = notificationRepository.save(notification);
             log.info("Notification {} marked as read", notificationId);
@@ -95,20 +94,19 @@ public class NotificationService {
         return NotificationDTO.fromEntity(notification);
     }
 
-    public void markAllAsRead(String userId) {
-        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndIsReadFalse(userId);
+    public void markAllAsRead() {
+        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndIsReadFalse(jwtUtil.getDataFromAuth().userId());
 
         LocalDateTime now = LocalDateTime.now();
         unreadNotifications.forEach(notification -> {
-            notification.setIsRead(true);
+            notification.setRead(true);
             notification.setReadAt(now);
         });
 
         notificationRepository.saveAll(unreadNotifications);
-        log.info("Marked {} notifications as read for user: {}", unreadNotifications.size(), userId);
     }
 
-    public long getUnreadCount(String userId) {
-        return notificationRepository.countByUserIdAndIsReadFalse(userId);
+    public long getUnreadCount() {
+        return notificationRepository.countByUserIdAndIsReadFalse(jwtUtil.getDataFromAuth().userId());
     }
 }

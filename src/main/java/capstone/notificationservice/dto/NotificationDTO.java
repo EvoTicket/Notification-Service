@@ -8,6 +8,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Optional;
 
 @Data
 @NoArgsConstructor
@@ -16,14 +19,14 @@ import java.time.LocalDateTime;
 public class NotificationDTO {
 
     private String id;
-    private String userId;
+    private Long userId;
     private String title;
     private String message;
     private NotificationType type;
-    private Boolean isRead;
+    private boolean isRead;
     private LocalDateTime createdAt;
     private LocalDateTime readAt;
-    private String metadata;
+    private String imageUrl;
 
     public static NotificationDTO fromEntity(Notification notification) {
         return NotificationDTO.builder()
@@ -32,10 +35,12 @@ public class NotificationDTO {
                 .title(notification.getTitle())
                 .message(notification.getMessage())
                 .type(notification.getType())
-                .isRead(notification.getIsRead())
-                .createdAt(notification.getCreatedAt())
-                .readAt(notification.getReadAt())
-                .metadata(notification.getMetadata())
+                .isRead(notification.isRead())
+                .createdAt(notification.getCreatedAt().atZone(ZoneId.systemDefault()).toLocalDateTime())
+                .readAt(Optional.ofNullable(notification.getReadAt())
+                        .map(t -> t.atZone(ZoneId.systemDefault()).toLocalDateTime())
+                        .orElse(null))
+                .imageUrl(notification.getImageUrl())
                 .build();
     }
 }

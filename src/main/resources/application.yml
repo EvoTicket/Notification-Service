@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: notification-service
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
   mail:
     host: smtp.gmail.com
     port: 587
@@ -53,6 +56,9 @@ springdoc:
     enabled: true
     path: /swagger-ui.html
   show-actuator: true
+
+app:
+  logo: https://lh3.googleusercontent.com/gg-dl/ABS2GSmQ6YCD-66aRIlJWwztbN_8uwbdPav7P5rIB9CrLQv4QnrRGojV9zPOph9Ip8FIy5xhVBz5NpT4pR0r4lB7RWviImVbI3Dm2XJKCtsDBpgoRNRjBHdDlVo1bj_sNeeWEo864wo2jj8ttMwcunaBNdmFVaOKZpYQRCLDtkaNLVVDxVVe8A=s1024-rj
 
 management:
   endpoints:

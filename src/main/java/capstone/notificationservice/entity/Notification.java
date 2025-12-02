@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 @Data
 @NoArgsConstructor
@@ -22,7 +24,7 @@ public class Notification {
     private String id;
 
     @Indexed
-    private String userId;
+    private Long userId;
 
     private String title;
 
@@ -32,7 +34,7 @@ public class Notification {
     private NotificationType type;
 
     @Builder.Default
-    private Boolean isRead = false;
+    private boolean isRead = false;
 
     @Indexed
     @Builder.Default
@@ -40,5 +42,5 @@ public class Notification {
 
     private LocalDateTime readAt;
 
-    private String metadata;
+    private String imageUrl;
 }

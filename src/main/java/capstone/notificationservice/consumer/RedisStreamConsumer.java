@@ -5,6 +5,7 @@ import capstone.notificationservice.event.OtpEvent;
 import capstone.notificationservice.event.WelcomeEvent;
 import capstone.notificationservice.exception.AppException;
 import capstone.notificationservice.exception.ErrorCode;
+import capstone.notificationservice.security.JwtUtil;
 import capstone.notificationservice.service.EmailService;
 import capstone.notificationservice.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,6 +13,7 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.connection.stream.Consumer;
 import org.springframework.data.redis.connection.stream.MapRecord;
 import org.springframework.data.redis.connection.stream.ReadOffset;
@@ -35,8 +37,11 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @Value("${app.logo}")
+    private String logo;
     private static final List<String> LIST_STREAM_KEY = List.of(
             "forgot-password-otp",
             "welcome-signup");
@@ -109,7 +114,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             OtpEvent otpEvent = objectMapper.readValue(payload, OtpEvent.class);
             log.info("Processing OTP event for email: {}", otpEvent.getEmail());
 
-            // Send OTP email
             emailService.sendOtpEmail(otpEvent.getEmail(), otpEvent.getOtpCode());
             log.info("OTP email sent successfully for: {}", otpEvent.getEmail());
 
@@ -130,11 +134,13 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             log.info("Welcome email sent successfully for: {}", welcomeEvent.getEmail());
 
             notificationService.createAndSendNotification(
-                    welcomeEvent.getEmail(),
+                    welcomeEvent.getUserId(),
                     "Chào mừng đến với EvoTicket!",
                     "Xin chào " + welcomeEvent.getFullName()
                             + "! Tài khoản của bạn đã được tạo thành công. Chúc bạn có trải nghiệm tuyệt vời!",
-                    NotificationType.WELCOME);
+                    NotificationType.WELCOME,
+                    logo
+            );
 
         } catch (Exception e) {
             log.error("Error processing Welcome event", e);
