@@ -7,17 +7,17 @@ spring:
   security:
     jwt:
       secret-key: ${JWT_SECRET_KEY}
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: evoticket.work@gmail.com
-    password: ${EMAIL_PASS}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: evoticket.work@gmail.com
+#    password: ${EMAIL_PASS}
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
   data:
     redis:
       url: ${REDIS_URL}
@@ -68,3 +68,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+brevo:
+  api-key: ${BREVO_KEY}
+  sender-email: evoticket.work@gmail.com
+  sender-name: EvoTicket

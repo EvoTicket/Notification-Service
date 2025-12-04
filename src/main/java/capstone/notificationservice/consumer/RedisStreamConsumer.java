@@ -103,24 +103,24 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
         log.info("Processing: {}", payload);
 
         switch (stream) {
-            case "forgot-password-otp" -> handleForgotPasswordOtp(payload);
+//            case "forgot-password-otp" -> handleForgotPasswordOtp(payload);
             case "welcome-signup" -> handleWelcomeSignup(payload);
             default -> throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unknown stream: " + stream);
         }
     }
 
-    private void handleForgotPasswordOtp(String payload) {
-        try {
-            OtpEvent otpEvent = objectMapper.readValue(payload, OtpEvent.class);
-            log.info("Processing OTP event for email: {}", otpEvent.getEmail());
-
-            emailService.sendOtpEmail(otpEvent.getEmail(), otpEvent.getOtpCode());
-            log.info("OTP email sent successfully for: {}", otpEvent.getEmail());
-
-        } catch (Exception e) {
-            log.error("Error processing OTP event", e);
-        }
-    }
+//    private void handleForgotPasswordOtp(String payload) {
+//        try {
+//            OtpEvent otpEvent = objectMapper.readValue(payload, OtpEvent.class);
+//            log.info("Processing OTP event for email: {}", otpEvent.getEmail());
+//
+//            emailService.sendOtpEmail(otpEvent.getEmail(), otpEvent.getOtpCode());
+//            log.info("OTP email sent successfully for: {}", otpEvent.getEmail());
+//
+//        } catch (Exception e) {
+//            log.error("Error processing OTP event", e);
+//        }
+//    }
 
     private void handleWelcomeSignup(String payload) {
         try {

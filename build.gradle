@@ -59,6 +59,8 @@ dependencies {
 
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("io.lettuce:lettuce-core")
+
+	implementation 'com.sendinblue:sib-api-v3-sdk:6.0.0'
 }
 
 dependencyManagement {
