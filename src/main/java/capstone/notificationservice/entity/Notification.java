@@ -1,46 +1,46 @@
 package capstone.notificationservice.entity;
 
 import capstone.notificationservice.enums.NotificationType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
-@Data
+@Getter @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Document(collection = "notifications")
+@Entity
+@Table(name = "notifications")
 public class Notification {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Indexed
+    @Column(name = "user_id", nullable = false)
     private Long userId;
 
     private String title;
 
     private String message;
 
-    @Indexed
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(50)")
     private NotificationType type;
 
     @Builder.Default
-    private boolean isRead = false;
+    @Column(name = "is_read")
+    private boolean read = false;
 
-    @Indexed
-    @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
 
+    @Column(name = "read_at")
     private LocalDateTime readAt;
 
+    @Column(name = "image_url")
     private String imageUrl;
 }

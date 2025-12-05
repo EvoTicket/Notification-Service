@@ -18,7 +18,7 @@ import java.util.Optional;
 @Builder
 public class NotificationDTO {
 
-    private String id;
+    private Long id;
     private Long userId;
     private String title;
     private String message;

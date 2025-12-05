@@ -46,7 +46,7 @@ public class NotificationService {
                 .title(title)
                 .message(message)
                 .type(type)
-                .isRead(false)
+                .read(false)
                 .createdAt(LocalDateTime.now())
                 .imageUrl(imageUrl)
                 .build();
@@ -95,7 +95,7 @@ public class NotificationService {
     }
 
     public void markAllAsRead() {
-        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndIsReadFalse(jwtUtil.getDataFromAuth().userId());
+        List<Notification> unreadNotifications = notificationRepository.findByUserIdAndReadFalse(jwtUtil.getDataFromAuth().userId());
 
         LocalDateTime now = LocalDateTime.now();
         unreadNotifications.forEach(notification -> {
@@ -107,6 +107,6 @@ public class NotificationService {
     }
 
     public long getUnreadCount() {
-        return notificationRepository.countByUserIdAndIsReadFalse(jwtUtil.getDataFromAuth().userId());
+        return notificationRepository.countByUserIdAndReadFalse(jwtUtil.getDataFromAuth().userId());
     }
 }
