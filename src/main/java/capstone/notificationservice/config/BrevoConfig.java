@@ -16,6 +16,6 @@ public class BrevoConfig {
     public TransactionalEmailsApi transactionalEmailsApi() {
         ApiClient defaultClient = sendinblue.Configuration.getDefaultApiClient();
         defaultClient.setApiKey(apiKey);
-        return new TransactionalEmailsApi();
+        return new TransactionalEmailsApi(defaultClient);
     }
 }
