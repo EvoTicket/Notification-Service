@@ -108,7 +108,7 @@ public class EmailService {
             // Ticket items
             context.setVariable("ticketItems", dto.getTicketItems());
 
-            String htmlContent = templateEngine.process("payment-success-email", context);
+            String htmlContent = templateEngine.process("order-confirm-email", context);
             String subject = "Thanh toán thành công - " + dto.getEventName() + " 🎫";
 
             SendSmtpEmail email = getSendSmtpEmail(dto.getEmail(), dto.getFullName(), htmlContent, subject);
