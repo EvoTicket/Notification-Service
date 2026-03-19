@@ -1,11 +1,11 @@
 package capstone.notificationservice.consumer;
 
 import capstone.notificationservice.enums.NotificationType;
+import capstone.notificationservice.event.OrderConfirmEvent;
 import capstone.notificationservice.event.OtpEvent;
 import capstone.notificationservice.event.WelcomeEvent;
 import capstone.notificationservice.exception.AppException;
 import capstone.notificationservice.exception.ErrorCode;
-import capstone.notificationservice.security.JwtUtil;
 import capstone.notificationservice.service.EmailService;
 import capstone.notificationservice.service.NotificationService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,14 +37,15 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmailService emailService;
     private final NotificationService notificationService;
-    private final JwtUtil jwtUtil;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Value("${app.logo}")
     private String logo;
     private static final List<String> LIST_STREAM_KEY = List.of(
             "forgot-password-otp",
-            "welcome-signup");
+            "welcome-signup",
+            "order-confirm"
+    );
     private static final String CONSUMER_GROUP = "notification-service-group";
     private static final String CONSUMER_NAME = "notification-1";
 
@@ -105,7 +106,21 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
         switch (stream) {
             case "forgot-password-otp" -> handleForgotPasswordOtp(payload);
             case "welcome-signup" -> handleWelcomeSignup(payload);
+            case "order-confirm" -> handleOrderConfirm(payload);
             default -> throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unknown stream: " + stream);
+        }
+    }
+
+    private void handleOrderConfirm(String payload) {
+        try {
+            OrderConfirmEvent orderConfirmEvent = objectMapper.readValue(payload, OrderConfirmEvent.class);
+            log.info("Processing order confirm for email: {}", orderConfirmEvent.getEmail());
+
+            emailService.sendOrderConfirmEmail(orderConfirmEvent);
+            log.info("order confirm email sent successfully for: {}", orderConfirmEvent.getEmail());
+
+        } catch (Exception e) {
+            log.error("Error processing OTP event", e);
         }
     }
 

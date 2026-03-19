@@ -1,14 +1,11 @@
 package capstone.notificationservice.service;
 
+import capstone.notificationservice.event.OrderConfirmEvent;
 import capstone.notificationservice.exception.AppException;
 import capstone.notificationservice.exception.ErrorCode;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -79,6 +76,53 @@ public class EmailService {
         } catch (Exception e) {
             log.error("Unexpected error while sending email to {}: {}", toEmail, e.getMessage());
             throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unexpected error while sending email", e);
+        }
+    }
+
+    public void sendOrderConfirmEmail(OrderConfirmEvent dto) {
+        try {
+            Context context = new Context();
+            context.setVariable("email", dto.getEmail());
+            context.setVariable("fullName", dto.getFullName());
+
+            // Order info
+            context.setVariable("orderCode", dto.getOrderCode());
+            context.setVariable("totalAmount", dto.getTotalAmount());
+            context.setVariable("discountCode", dto.getDiscountCode());
+            context.setVariable("discountAmount", dto.getDiscountAmount());
+            context.setVariable("ticketDownloadUrl", dto.getTicketDownloadUrl());
+
+            // Event info
+            context.setVariable("eventName", dto.getEventName());
+            context.setVariable("eventDate", dto.getEventDate());
+            context.setVariable("eventTime", dto.getEventTime());
+            context.setVariable("eventLocation", dto.getEventLocation());
+            context.setVariable("eventAddress", dto.getEventAddress());
+            context.setVariable("organizerName", dto.getOrganizerName());
+
+            // Payment info
+            context.setVariable("paymentMethod", dto.getPaymentMethod());
+            context.setVariable("transactionId", dto.getTransactionId());
+            context.setVariable("paidAt", dto.getPaidAt());
+
+            // Ticket items
+            context.setVariable("ticketItems", dto.getTicketItems());
+
+            String htmlContent = templateEngine.process("payment-success-email", context);
+            String subject = "Thanh toán thành công - " + dto.getEventName() + " 🎫";
+
+            SendSmtpEmail email = getSendSmtpEmail(dto.getEmail(), dto.getFullName(), htmlContent, subject);
+
+            emailsApi.sendTransacEmail(email);
+
+            log.info("Payment success email sent successfully to: {}", dto.getEmail());
+
+        } catch (ApiException e) {
+            log.error("Brevo API error while sending payment email to {}: {}", dto.getEmail(), e.getMessage());
+            throw new AppException(ErrorCode.MESSAGE_ERROR, "Failed to send payment email via Brevo", e);
+        } catch (Exception e) {
+            log.error("Unexpected error while sending payment email to {}: {}", dto.getEmail(), e.getMessage());
+            throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unexpected error while sending payment email", e);
         }
     }
 

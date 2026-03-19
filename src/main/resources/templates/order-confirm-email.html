@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thanh Toán Thành Công - EvoTicket</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .email-container {
+            max-width: 620px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 50px 30px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -60%;
+            left: -30%;
+            width: 160%;
+            height: 200%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.15) 0%, transparent 65%);
+        }
+
+        .success-icon {
+            font-size: 70px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+            display: block;
+        }
+
+        .logo {
+            font-size: 30px;
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 1px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 15px;
+            margin-top: 6px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ===== CONTENT ===== */
+        .content {
+            padding: 45px 40px;
+            background: #ffffff;
+        }
+
+        .greeting {
+            font-size: 20px;
+            color: #2d3748;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .username {
+            color: #11998e;
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            color: #4a5568;
+            font-size: 15px;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        /* ===== ORDER CODE BADGE ===== */
+        .order-badge {
+            text-align: center;
+            margin: 25px 0;
+        }
+
+        .order-label {
+            font-size: 13px;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .order-code {
+            display: inline-block;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            padding: 14px 36px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(17, 153, 142, 0.35);
+        }
+
+        /* ===== EVENT INFO BOX ===== */
+        .event-box {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            border-radius: 16px;
+            padding: 28px;
+            margin: 28px 0;
+            border-left: 5px solid #11998e;
+        }
+
+        .event-box-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .event-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: 10px 0;
+            border-bottom: 1px dashed #b2f5ea;
+            gap: 12px;
+        }
+
+        .event-info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-key {
+            font-size: 13px;
+            color: #718096;
+            font-weight: 500;
+            white-space: nowrap;
+            min-width: 130px;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #2d3748;
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* ===== TICKET TABLE ===== */
+        .ticket-section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2d3748;
+            margin: 28px 0 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticket-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .ticket-table thead tr {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .ticket-table thead th {
+            padding: 13px 14px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .ticket-table tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.2s;
+        }
+
+        .ticket-table tbody tr:nth-child(even) {
+            background: #f7fafc;
+        }
+
+        .ticket-table tbody td {
+            padding: 12px 14px;
+            color: #4a5568;
+            vertical-align: middle;
+        }
+
+        .ticket-type-badge {
+            display: inline-block;
+            background: #e6fffa;
+            color: #11998e;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 20px;
+            border: 1px solid #b2f5ea;
+        }
+
+        /* ===== TOTAL BOX ===== */
+        .total-box {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 15px;
+            font-weight: 500;
+        }
+
+        .total-amount {
+            color: #38ef7d;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== PAYMENT INFO ===== */
+        .payment-info-box {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 22px;
+            margin: 20px 0;
+        }
+
+        .payment-info-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 7px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .payment-row:last-child {
+            border-bottom: none;
+        }
+
+        .payment-key {
+            font-size: 13px;
+            color: #718096;
+        }
+
+        .payment-value {
+            font-size: 13px;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .payment-status-badge {
+            background: #c6f6d5;
+            color: #276749;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 12px;
+            border-radius: 20px;
+        }
+
+        /* ===== CTA ===== */
+        .cta-center {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 16px 44px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 15px;
+            box-shadow: 0 10px 25px rgba(17, 153, 142, 0.35);
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== TIPS ===== */
+        .tips-section {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 22px 24px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+
+        .tips-title {
+            font-weight: 700;
+            color: #744210;
+            margin-bottom: 10px;
+            font-size: 15px;
+        }
+
+        .tips-content {
+            color: #744210;
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        /* ===== DIVIDER ===== */
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, #e2e8f0 50%, transparent 100%);
+            margin: 30px 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background: #f7fafc;
+            padding: 32px 40px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer-text {
+            color: #718096;
+            font-size: 13px;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .social-links {
+            margin-top: 18px;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #11998e;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        @media only screen and (max-width: 600px) {
+            .content { padding: 30px 20px; }
+            .footer { padding: 25px 20px; }
+            .event-info-row { flex-direction: column; gap: 4px; }
+            .info-value { text-align: left; }
+            .total-box { flex-direction: column; gap: 10px; text-align: center; }
+            .ticket-table thead th,
+            .ticket-table tbody td { padding: 10px 10px; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="email-container">
+
+    <!-- HEADER -->
+    <div class="header">
+        <span class="success-icon">✅</span>
+        <div class="logo">🎫 EvoTicket</div>
+        <div class="header-title">Thanh Toán Thành Công!</div>
+        <div class="header-subtitle">Vé của bạn đã được xác nhận và sẵn sàng sử dụng</div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+        <div class="greeting">Xin chào,</div>
+        <div class="username" th:text="${fullName}">Nguyễn Văn A</div>
+
+        <p class="message">
+            Cảm ơn bạn đã tin tưởng và mua vé qua <strong>EvoTicket</strong>!
+            Đơn hàng của bạn đã được thanh toán thành công. Vui lòng lưu lại thông tin bên dưới để
+            sử dụng khi check-in tại sự kiện.
+        </p>
+
+        <!-- ORDER CODE -->
+        <div class="order-badge">
+            <div class="order-label">Mã đơn hàng</div>
+            <div class="order-code" th:text="${orderCode}">EVT-2024-00123</div>
+        </div>
+
+        <!-- EVENT INFO -->
+        <div class="event-box">
+            <div class="event-box-title">🎪 Thông Tin Sự Kiện</div>
+
+            <div class="event-info-row">
+                <span class="info-key">Tên sự kiện</span>
+                <span class="info-value" th:text="${eventName}">Concert Mùa Hè 2024</span>
+            </div>
+            <div class="event-info-row">
+                <span class="info-key">Ngày tổ chức</span>
+                <span class="info-value" th:text="${eventDate}">Thứ Bảy, 20/07/2024</span>
+            </div>
+            <div class="event-info-row">
+                <span class="info-key">Giờ bắt đầu</span>
+                <span class="info-value" th:text="${eventTime}">18:00 - 22:00</span>
+            </div>
+            <div class="event-info-row">
+                <span class="info-key">Địa điểm</span>
+                <span class="info-value" th:text="${eventLocation}">Nhà Hát Lớn Hà Nội</span>
+            </div>
+            <div class="event-info-row">
+                <span class="info-key">Địa chỉ</span>
+                <span class="info-value" th:text="${eventAddress}">1 Tràng Tiền, Hoàn Kiếm, Hà Nội</span>
+            </div>
+            <div class="event-info-row">
+                <span class="info-key">Ban tổ chức</span>
+                <span class="info-value" th:text="${organizerName}">EvoEvent Co.</span>
+            </div>
+        </div>
+
+        <!-- TICKET LIST -->
+        <div class="ticket-section-title">🎟️ Chi Tiết Vé Đã Mua</div>
+
+        <table class="ticket-table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Loại vé</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+            </tr>
+            </thead>
+            <tbody>
+            <!-- Thymeleaf loop qua danh sách vé -->
+            <tr th:each="ticket, iterStat : ${ticketItems}">
+                <td th:text="${iterStat.index + 1}">1</td>
+                <td>
+                    <span class="ticket-type-badge" th:text="${ticket.ticketTypeName}">VIP</span>
+                </td>
+                <td th:text="${ticket.quantity}">2</td>
+                <td th:text="${#numbers.formatDecimal(ticket.unitPrice, 0, 'COMMA', 0, 'POINT') + ' ₫'}">500.000 ₫</td>
+                <td th:text="${#numbers.formatDecimal(ticket.subtotal, 0, 'COMMA', 0, 'POINT') + ' ₫'}">1.000.000 ₫</td>
+            </tr>
+
+            <!-- Fallback nếu không dùng Thymeleaf để preview -->
+            <!--
+            <tr>
+                <td>1</td>
+                <td><span class="ticket-type-badge">VIP</span></td>
+                <td>2</td>
+                <td>1.500.000 ₫</td>
+                <td>3.000.000 ₫</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td><span class="ticket-type-badge">Standard</span></td>
+                <td>1</td>
+                <td>500.000 ₫</td>
+                <td>500.000 ₫</td>
+            </tr>
+            -->
+            </tbody>
+        </table>
+
+        <!-- DISCOUNT (hiển thị có điều kiện) -->
+        <div th:if="${discountAmount != null and discountAmount > 0}"
+             style="text-align:right; margin-top: 12px; color: #e53e3e; font-size: 14px; font-weight: 600;">
+            🏷️ Giảm giá (<span th:text="${discountCode}">PROMO10</span>):
+            -<span th:text="${#numbers.formatDecimal(discountAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">200.000 ₫</span>
+        </div>
+
+        <!-- TOTAL -->
+        <div class="total-box">
+            <span class="total-label">💰 Tổng thanh toán</span>
+            <span class="total-amount"
+                  th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">
+                    3.300.000 ₫
+                </span>
+        </div>
+
+        <!-- PAYMENT INFO -->
+        <div class="payment-info-box">
+            <div class="payment-info-title">💳 Thông Tin Thanh Toán</div>
+
+            <div class="payment-row">
+                <span class="payment-key">Phương thức</span>
+                <span class="payment-value" th:text="${paymentMethod}">VNPay</span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-key">Mã giao dịch</span>
+                <span class="payment-value" th:text="${transactionId}">VNP20240720123456</span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-key">Thời gian thanh toán</span>
+                <span class="payment-value" th:text="${paidAt}">20/07/2024 lúc 15:32:10</span>
+            </div>
+            <div class="payment-row">
+                <span class="payment-key">Trạng thái</span>
+                <span class="payment-status-badge">✔ Thành công</span>
+            </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-center">
+            <a th:href="${ticketDownloadUrl}" href="#" class="cta-button">
+                📥 Tải Vé Của Bạn
+            </a>
+        </div>
+
+        <!-- TIPS -->
+        <div class="tips-section">
+            <div class="tips-title">💡 Lưu ý quan trọng khi đến sự kiện</div>
+            <div class="tips-content">
+                • Vui lòng mang theo vé (bản in hoặc trên điện thoại) khi đến tham dự<br>
+                • Check-in bắt đầu trước giờ khai mạc <strong>60 phút</strong><br>
+                • Mỗi vé chỉ được sử dụng <strong>một lần duy nhất</strong><br>
+                • Liên hệ ban tổ chức nếu cần hỗ trợ đổi/hoàn vé
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="message">
+            Nếu bạn có bất kỳ câu hỏi nào về đơn hàng, vui lòng liên hệ đội ngũ hỗ trợ của chúng tôi
+            và cung cấp mã đơn hàng để được xử lý nhanh nhất.
+        </p>
+
+        <p class="message" style="margin-top: 20px;">
+            <strong>Hẹn gặp bạn tại sự kiện! 🎉</strong><br>
+            Đội ngũ EvoTicket
+        </p>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <p class="footer-text">
+            <strong>EvoTicket</strong> - Nền tảng quản lý sự kiện hàng đầu<br>
+            © 2024 EvoTicket. All rights reserved.
+        </p>
+        <div class="social-links">
+            <a href="#">📧 Liên hệ</a> •
+            <a href="#">📚 Hướng dẫn</a> •
+            <a href="#">❓ FAQ</a> •
+            <a href="#">📱 Cộng đồng</a>
+        </div>
+        <p class="footer-text" style="margin-top: 18px; font-size: 12px; color: #a0aec0;">
+            Email xác nhận được gửi đến
+            <span th:text="${email}">email@example.com</span>
+            theo yêu cầu đặt vé của bạn.
+        </p>
+    </div>
+
+</div>
+</body>
+</html>
