@@ -439,19 +439,19 @@
             </div>
             <div class="event-info-row">
                 <span class="info-key">Ngày tổ chức</span>
-                <span class="info-value" th:text="${eventDate}">Thứ Bảy, 20/07/2024</span>
+                <span class="info-value" th:text="${showtimeDate != null and !showtimeDate.isEmpty() ? showtimeDate : eventDate}">Thứ Bảy, 20/07/2024</span>
             </div>
             <div class="event-info-row">
                 <span class="info-key">Giờ bắt đầu</span>
-                <span class="info-value" th:text="${eventTime}">18:00 - 22:00</span>
+                <span class="info-value" th:text="${showtimeTime != null and !showtimeTime.isEmpty() ? showtimeTime : eventTime}">18:00 - 22:00</span>
             </div>
             <div class="event-info-row">
                 <span class="info-key">Địa điểm</span>
-                <span class="info-value" th:text="${eventLocation}">Nhà Hát Lớn Hà Nội</span>
+                <span class="info-value" th:text="${showtimeLocation != null and !showtimeLocation.isEmpty() ? showtimeLocation : eventLocation}">Nhà Hát Lớn Hà Nội</span>
             </div>
             <div class="event-info-row">
                 <span class="info-key">Địa chỉ</span>
-                <span class="info-value" th:text="${eventAddress}">1 Tràng Tiền, Hoàn Kiếm, Hà Nội</span>
+                <span class="info-value" th:text="${showtimeAddress != null and !showtimeAddress.isEmpty() ? showtimeAddress : eventAddress}">1 Tràng Tiền, Hoàn Kiếm, Hà Nội</span>
             </div>
             <div class="event-info-row">
                 <span class="info-key">Ban tổ chức</span>

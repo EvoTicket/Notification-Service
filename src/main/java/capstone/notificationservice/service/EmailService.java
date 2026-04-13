@@ -99,6 +99,12 @@ public class EmailService {
             context.setVariable("eventLocation", dto.getEventLocation());
             context.setVariable("eventAddress", dto.getEventAddress());
             context.setVariable("organizerName", dto.getOrganizerName());
+            
+            // Showtime info
+            context.setVariable("showtimeDate", dto.getShowtimeDate());
+            context.setVariable("showtimeTime", dto.getShowtimeTime());
+            context.setVariable("showtimeLocation", dto.getShowtimeLocation());
+            context.setVariable("showtimeAddress", dto.getShowtimeAddress());
 
             // Payment info
             context.setVariable("paymentMethod", dto.getPaymentMethod());

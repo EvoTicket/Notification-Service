@@ -29,6 +29,12 @@ public class OrderConfirmEvent {
     private String eventAddress;
     private String organizerName;
 
+    // Showtime (nếu event có nhiều suất diễn)
+    private String showtimeDate;       // VD: "Thứ Bảy, 20/07/2024"
+    private String showtimeTime;       // VD: "18:00 - 22:00"
+    private String showtimeLocation;
+    private String showtimeAddress;
+
     // Payment
     private String paymentMethod;      // VD: "VNPay", "Momo"
     private String transactionId;
