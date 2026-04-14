@@ -84,8 +84,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-brevo:
-  api-key: ${BREVO_KEY}
-  sender-email: evoticket.work@gmail.com
-  sender-name: EvoTicket
