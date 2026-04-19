@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.3.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id "org.sonarqube" version "7.2.3.7755"
 }
 
 group = 'capstone'
@@ -11,6 +12,13 @@ description = 'Demo project for Spring Boot'
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+sonar {
+	properties {
+		property "sonar.projectKey", "EvoTicket_Notification-Service_4602a667-b5f1-49b2-a19b-9a26ee8250c8"
+		property "sonar.projectName", "Notification-Service"
 	}
 }
 
