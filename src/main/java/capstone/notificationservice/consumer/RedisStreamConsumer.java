@@ -37,7 +37,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private final RedisTemplate<String, Object> redisTemplate;
     private final EmailService emailService;
     private final NotificationService notificationService;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Value("${app.logo}")
     private String logo;
