@@ -42,8 +42,6 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
 
-    @Value("${app.logo}")
-    private String logo;
     private static final List<String> LIST_STREAM_KEY = List.of(
             "forgot-password-otp",
             "welcome-signup",
@@ -134,7 +132,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
                         "Mua vé thành công!",
                         "Đơn hàng " + orderConfirmEvent.getOrderCode() + " cho sự kiện '" + orderConfirmEvent.getEventName() + "' đã được thanh toán thành công.",
                         NotificationType.PAYMENT,
-                        logo
+                        null
                 );
             }
         } catch (Exception e) {
@@ -147,7 +145,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             HotEventCreatedEvent event = objectMapper.readValue(payload, HotEventCreatedEvent.class);
             log.info("Processing HotEventCreated event: {}", event.getEventName());
 
-            String image = event.getThumbnailImage() != null ? event.getThumbnailImage() : logo;
+            String image = event.getThumbnailImage() != null ? event.getThumbnailImage() : null;
             notificationService.broadcastNotification(
                     "Sự kiện HOT mới!",
                     "Sự kiện '" + event.getEventName() + "' với " + event.getTotalSeats() + " chỗ ngồi cực kỳ hấp dẫn vừa được mở bán!",
@@ -169,7 +167,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
                     "Mint vé thành công!",
                     "Vé mã " + event.getTicketCode() + " của bạn cho sự kiện '" + event.getEventName() + "' (" + event.getTicketTypeName() + ") đã được mint thành công lên blockchain.",
                     NotificationType.TICKET,
-                    logo
+                    null
             );
         } catch (Exception e) {
             log.error("Error processing TicketMinted event", e);
@@ -187,7 +185,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
                         "Chuyển nhượng vé thành công!",
                         "Bạn đã chuyển nhượng thành công vé mã " + event.getTicketCode() + " của sự kiện '" + event.getEventName() + "' sang tài khoản khác.",
                         NotificationType.TICKET,
-                        logo
+                        null
                 );
             }
 
@@ -197,7 +195,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
                         "Nhận vé chuyển nhượng thành công!",
                         "Bạn đã nhận được vé mã " + event.getTicketCode() + " của sự kiện '" + event.getEventName() + "' được chuyển nhượng sang cho bạn.",
                         NotificationType.TICKET,
-                        logo
+                        null
                 );
             }
         } catch (Exception e) {
@@ -235,7 +233,7 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
                     "Xin chào " + welcomeEvent.getFullName()
                             + "! Tài khoản của bạn đã được tạo thành công. Chúc bạn có trải nghiệm tuyệt vời!",
                     NotificationType.WELCOME,
-                    logo
+                    null
             );
 
         } catch (Exception e) {
