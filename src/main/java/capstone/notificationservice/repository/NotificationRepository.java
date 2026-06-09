@@ -18,4 +18,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
     List<Notification> findByUserIdAndReadFalse(Long userId);
 
     List<Notification> findByUserId(Long userId);
+
+    @org.springframework.data.jpa.repository.Query(value = "SELECT id FROM iam_service.users", nativeQuery = true)
+    List<Long> findAllUserIds();
 }

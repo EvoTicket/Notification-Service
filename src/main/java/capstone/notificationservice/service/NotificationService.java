@@ -109,4 +109,20 @@ public class NotificationService {
     public long getUnreadCount() {
         return notificationRepository.countByUserIdAndReadFalse(jwtUtil.getDataFromAuth().userId());
     }
+
+    public void broadcastNotification(String title, String message, NotificationType type, String imageUrl) {
+        try {
+            List<Long> userIds = notificationRepository.findAllUserIds();
+            log.info("Broadcasting notification to {} users", userIds.size());
+            for (Long userId : userIds) {
+                try {
+                    createAndSendNotification(userId, title, message, type, imageUrl);
+                } catch (Exception e) {
+                    log.error("Failed to send broadcast notification to user {}", userId, e);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to broadcast notification", e);
+        }
+    }
 }

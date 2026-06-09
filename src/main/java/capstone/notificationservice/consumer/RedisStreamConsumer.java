@@ -4,6 +4,9 @@ import capstone.notificationservice.enums.NotificationType;
 import capstone.notificationservice.event.OrderConfirmEvent;
 import capstone.notificationservice.event.OtpEvent;
 import capstone.notificationservice.event.WelcomeEvent;
+import capstone.notificationservice.event.HotEventCreatedEvent;
+import capstone.notificationservice.event.TicketMintedEvent;
+import capstone.notificationservice.event.TicketTransferredEvent;
 import capstone.notificationservice.exception.AppException;
 import capstone.notificationservice.exception.ErrorCode;
 import capstone.notificationservice.service.EmailService;
@@ -44,7 +47,10 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
     private static final List<String> LIST_STREAM_KEY = List.of(
             "forgot-password-otp",
             "welcome-signup",
-            "order-confirm"
+            "order-confirm",
+            "hot-event-created",
+            "ticket-minted",
+            "ticket-transferred"
     );
     private static final String CONSUMER_GROUP = "notification-service-group";
     private static final String CONSUMER_NAME = "notification-1";
@@ -107,6 +113,9 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             case "forgot-password-otp" -> handleForgotPasswordOtp(payload);
             case "welcome-signup" -> handleWelcomeSignup(payload);
             case "order-confirm" -> handleOrderConfirm(payload);
+            case "hot-event-created" -> handleHotEventCreated(payload);
+            case "ticket-minted" -> handleTicketMinted(payload);
+            case "ticket-transferred" -> handleTicketTransferred(payload);
             default -> throw new AppException(ErrorCode.INTERNAL_SERVER_ERROR, "Unknown stream: " + stream);
         }
     }
@@ -119,8 +128,80 @@ public class RedisStreamConsumer implements StreamListener<String, MapRecord<Str
             emailService.sendOrderConfirmEmail(orderConfirmEvent);
             log.info("order confirm email sent successfully for: {}", orderConfirmEvent.getEmail());
 
+            if (orderConfirmEvent.getUserId() != null) {
+                notificationService.createAndSendNotification(
+                        orderConfirmEvent.getUserId(),
+                        "Mua vé thành công!",
+                        "Đơn hàng " + orderConfirmEvent.getOrderCode() + " cho sự kiện '" + orderConfirmEvent.getEventName() + "' đã được thanh toán thành công.",
+                        NotificationType.PAYMENT,
+                        logo
+                );
+            }
         } catch (Exception e) {
             log.error("Error processing OTP event", e);
+        }
+    }
+
+    private void handleHotEventCreated(String payload) {
+        try {
+            HotEventCreatedEvent event = objectMapper.readValue(payload, HotEventCreatedEvent.class);
+            log.info("Processing HotEventCreated event: {}", event.getEventName());
+
+            String image = event.getThumbnailImage() != null ? event.getThumbnailImage() : logo;
+            notificationService.broadcastNotification(
+                    "Sự kiện HOT mới!",
+                    "Sự kiện '" + event.getEventName() + "' với " + event.getTotalSeats() + " chỗ ngồi cực kỳ hấp dẫn vừa được mở bán!",
+                    NotificationType.EVENT,
+                    image
+            );
+        } catch (Exception e) {
+            log.error("Error processing HotEventCreated event", e);
+        }
+    }
+
+    private void handleTicketMinted(String payload) {
+        try {
+            TicketMintedEvent event = objectMapper.readValue(payload, TicketMintedEvent.class);
+            log.info("Processing TicketMinted event for user: {}", event.getUserId());
+
+            notificationService.createAndSendNotification(
+                    event.getUserId(),
+                    "Mint vé thành công!",
+                    "Vé mã " + event.getTicketCode() + " của bạn cho sự kiện '" + event.getEventName() + "' (" + event.getTicketTypeName() + ") đã được mint thành công lên blockchain.",
+                    NotificationType.TICKET,
+                    logo
+            );
+        } catch (Exception e) {
+            log.error("Error processing TicketMinted event", e);
+        }
+    }
+
+    private void handleTicketTransferred(String payload) {
+        try {
+            TicketTransferredEvent event = objectMapper.readValue(payload, TicketTransferredEvent.class);
+            log.info("Processing TicketTransferred event from {} to {}", event.getFromUserId(), event.getToUserId());
+
+            if (event.getFromUserId() != null) {
+                notificationService.createAndSendNotification(
+                        event.getFromUserId(),
+                        "Chuyển nhượng vé thành công!",
+                        "Bạn đã chuyển nhượng thành công vé mã " + event.getTicketCode() + " của sự kiện '" + event.getEventName() + "' sang tài khoản khác.",
+                        NotificationType.TICKET,
+                        logo
+                );
+            }
+
+            if (event.getToUserId() != null) {
+                notificationService.createAndSendNotification(
+                        event.getToUserId(),
+                        "Nhận vé chuyển nhượng thành công!",
+                        "Bạn đã nhận được vé mã " + event.getTicketCode() + " của sự kiện '" + event.getEventName() + "' được chuyển nhượng sang cho bạn.",
+                        NotificationType.TICKET,
+                        logo
+                );
+            }
+        } catch (Exception e) {
+            log.error("Error processing TicketTransferred event", e);
         }
     }
 
